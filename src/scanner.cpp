@@ -19,6 +19,9 @@ static uint32_t getPort_(uint64_t data) { return data >> 32; }
 
 static uint32_t getFd_(uint64_t data) { return data; }
 
+/* Speed of scanning depends on the limit of file descriptors the process
+ * can open. On linux default 1024. Increating the limit to (1 << 16)
+ * must speed up the scanning process. */
 void scanTcpPorts(const std::string &address, int from, int to) {
   const int openFdLimit = getdtablesize();
   // subtract 4 since stdin, stdout, stderr, epoll already opened
