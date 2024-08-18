@@ -7,9 +7,11 @@
 #include <cstring>
 #include <iomanip>
 #include <iostream>
+#include <netinet/in.h>
 #include <string>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <vector>
 
 static uint64_t packPortAndFd_(uint32_t port, uint32_t fd) {
   return (static_cast<uint64_t>(port) << 32) + fd;
@@ -18,6 +20,9 @@ static uint64_t packPortAndFd_(uint32_t port, uint32_t fd) {
 static uint32_t getPort_(uint64_t data) { return data >> 32; }
 
 static uint32_t getFd_(uint64_t data) { return data; }
+
+static void addToPoll_(int pollingfd, const std::string &address, int port,
+                       std::vector<epoll_event> &events);
 
 /* Speed of scanning depends on the limit of file descriptors the process
  * can open. On linux default 1024. Increating the limit to (1 << 16)
@@ -74,8 +79,8 @@ void scanTcpPorts(const std::string &address, int from, int to) {
   std::cout << '[' << openPortCounter << " TCP ports are opened]\n";
 }
 
-void addToPoll_(int pollingfd, const std::string &address, int port,
-                std::vector<epoll_event> &events) {
+static void addToPoll_(int pollingfd, const std::string &address, int port,
+                       std::vector<epoll_event> &events) {
   sockaddr_in sa;
   memset(&sa, 0, sizeof(sa));
   sa.sin_family = AF_INET;
