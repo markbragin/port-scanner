@@ -5,6 +5,6 @@
 #include <string>
 #include <sys/epoll.h>
 
-void scanTcpPorts(const std::string &address, int from, int to);
+void scanTcpPorts(const std::string &address, int fromPort, int toPort);
 
 #endif

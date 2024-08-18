@@ -27,10 +27,10 @@ static void addToPoll_(int pollingfd, const std::string &address, int port,
 /* Speed of scanning depends on the limit of file descriptors the process
  * can open. On linux default 1024. Increating the limit to (1 << 16)
  * must speed up the scanning process. */
-void scanTcpPorts(const std::string &address, int from, int to) {
+void scanTcpPorts(const std::string &address, int fromPort, int toPort) {
   const int openFdLimit = getdtablesize();
   // subtract 4 since stdin, stdout, stderr, epoll already opened
-  const int queueSize = std::min(openFdLimit - 4, to - from + 1);
+  const int queueSize = std::min(openFdLimit - 4, toPort - fromPort + 1);
   const int timeout = 300; // ms
 
   int pollingfd = epoll_create(1);
@@ -40,10 +40,10 @@ void scanTcpPorts(const std::string &address, int from, int to) {
     return;
   }
 
-  std::vector<epoll_event> events(to + 1);
+  std::vector<epoll_event> events(toPort + 1);
 
   int port;
-  for (port = from; port < from + queueSize; port++) {
+  for (port = fromPort; port < fromPort + queueSize; port++) {
     addToPoll_(pollingfd, address, port, events);
   }
 
@@ -63,7 +63,7 @@ void scanTcpPorts(const std::string &address, int from, int to) {
         int curSock = getFd_(pevents[i].data.u64);
         close(curSock);
 
-        if (port <= to) {
+        if (port <= toPort) {
           addToPoll_(pollingfd, address, port++, events);
         }
 
