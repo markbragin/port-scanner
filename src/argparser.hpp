@@ -1,7 +1,6 @@
 #ifndef ARG_PARSER_HPP_
 #define ARG_PARSER_HPP_
 
-#include <arpa/inet.h>
 #include <exception>
 #include <string>
 

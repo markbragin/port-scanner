@@ -1,5 +1,9 @@
 #include "argparser.hpp"
 
+#include <arpa/inet.h>
+#include <exception>
+#include <string>
+
 bool isValidIPv4(const std::string &address) {
   struct sockaddr_in sa;
   int res = inet_pton(AF_INET, address.c_str(), &sa);

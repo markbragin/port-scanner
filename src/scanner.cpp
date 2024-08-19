@@ -7,8 +7,10 @@
 #include <cstring>
 #include <iomanip>
 #include <iostream>
+#include <memory>
 #include <netinet/in.h>
 #include <string>
+#include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <vector>
@@ -40,6 +42,8 @@ void scanTcpPorts(const std::string &address, int fromPort, int toPort) {
     return;
   }
 
+  // it's possible to reduce memory usage here (size = toPort - fromPort + 1)
+  // but idx = port is convenient
   std::vector<epoll_event> events(toPort + 1);
 
   int port;
@@ -49,12 +53,12 @@ void scanTcpPorts(const std::string &address, int fromPort, int toPort) {
 
   std::cout << "Scanning...\n";
 
-  epoll_event pevents[queueSize];
+  auto pevents = std::make_unique<epoll_event[]>(queueSize);
   int readyCnt = 1;
   int openPortCounter = 0;
 
   while (readyCnt > 0) {
-    readyCnt = epoll_wait(pollingfd, pevents, queueSize, timeout);
+    readyCnt = epoll_wait(pollingfd, pevents.get(), queueSize, timeout);
     if (readyCnt == -1) {
       std::cerr << "epoll_wait(): " << strerror(errno) << '\n';
     } else {
