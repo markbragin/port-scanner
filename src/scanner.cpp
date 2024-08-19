@@ -91,18 +91,25 @@ static void addToPoll_(int pollingfd, const std::string &address, int port,
   sa.sin_port = htons(port);
   inet_pton(AF_INET, address.c_str(), &sa.sin_addr);
 
+  int sockfd;
+  if ((sockfd = socket(sa.sin_family, SOCK_STREAM | SOCK_NONBLOCK, 0)) == -1) {
+    std::cerr << "socket(): " << strerror(errno) << '\n';
+    return;
+  }
+
+  if (connect(sockfd, (sockaddr *)&sa, sizeof(sa)) == -1 &&
+      errno != EINPROGRESS) {
+    close(sockfd);
+    std::cerr << "connect(): " << strerror(errno) << '\n';
+    return;
+  }
+
   auto &ev = events[port];
   ev.events = EPOLLOUT | EPOLLERR | EPOLLONESHOT;
+  ev.data.u64 = packPortAndFd_(port, sockfd);
 
-  int sockfd;
-  if ((sockfd = socket(sa.sin_family, SOCK_STREAM | SOCK_NONBLOCK, 0)) != -1) {
-    int rv = connect(sockfd, (sockaddr *)&sa, sizeof(sa));
-    ev.data.u64 = packPortAndFd_(port, sockfd);
-    if (epoll_ctl(pollingfd, EPOLL_CTL_ADD, sockfd, &ev) == -1) {
-      std::cerr << "epoll_ctl(): " << strerror(errno) << '\n';
-      close(sockfd);
-    }
-  } else {
-    std::cerr << "socket(): " << strerror(errno) << '\n';
+  if (epoll_ctl(pollingfd, EPOLL_CTL_ADD, sockfd, &ev) == -1) {
+    std::cerr << "epoll_ctl(): " << strerror(errno) << '\n';
+    close(sockfd);
   }
 }
