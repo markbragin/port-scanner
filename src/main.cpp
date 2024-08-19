@@ -4,10 +4,10 @@
 #include "scanner.hpp"
 
 void printUsage() {
-  std::cout << "USAGE: scanner <IP> <PORT1> <PORT2>\n"
+  std::cout << "USAGE: scanner <IP> <START_PORT> <END_PORT>\n"
             << "  IP - the address of a machine\n"
-            << "  PORT1 - the first port to scan\n"
-            << "  PORT2 - the last port to scan\n";
+            << "  START_PORT - the first port to scan\n"
+            << "  END_PORT - the last port to scan\n";
 }
 
 int main(int argc, char **argv) {
